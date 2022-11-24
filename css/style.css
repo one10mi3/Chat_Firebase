@@ -1,0 +1,114 @@
+@charset "utf-8";
+
+body {
+  background-color: whitesmoke;
+  margin: 0;
+  padding: 0;
+}
+.hidden {
+  display: none;
+}
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+#main {
+  height: 100vh;
+  width:auto;
+  padding: 16px;
+}
+#modal {
+  display: none;
+  width: 100%;
+  height: 100%;
+  background: rgba(26,26,26,1);
+  position: fixed;
+  z-index: 1;
+}
+/* modal中身 */
+#input_area {
+  width: 400px;
+  height: 250px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  background: #fff;
+  text-align: center;
+  z-index: 2;
+}
+#input_area .ttl {
+  font-weight: bold;
+}
+#input_area p {
+  padding: 15px;
+}
+#input_area button {
+  display: block;
+  margin: 0 auto;
+  background: #333;
+  color: #fff;
+  padding: 20px 40px;
+  border: none;
+}
+#input_area button:hover {
+  background: #777;
+}
+/* 名前入力用input */
+.cp_iptxt {
+  position: relative;
+  width: 80%;
+  margin: 40px auto;
+}
+.cp_iptxt input[type='text'] {
+  font: 15px/24px sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.3em;
+  transition: 0.3s;
+  letter-spacing: 1px;
+  /* color: #aaaaaa; */
+  color: black;
+  border: none;
+  border-bottom: 2px solid #1b2538;
+  background: transparent;
+}
+.ef input[type='text']:focus {
+  border-bottom: 2px solid #da3c41;
+  outline: none;
+}
+
+/* チャット中身 */
+#output {
+  width: 100%;
+  overflow: auto; 
+  min-height: 85vh;
+  max-height: 85vh;
+}
+/* 左 */
+.kaiwa-name-left{font-size: small; position: relative; width: 62%;display: inline-block; vertical-align: top; margin-left: 4%; margin-right: 18%; margin-bottom: 10px; box-sizing: border-box;}
+.kaiwa-text-left{display:inline-block; background-color: #e0edff; padding: 10px; border-radius: 10px; font-size: medium;}
+.kaiwa-text-left:after {content: ''; position: absolute; width: 0; height: 0; border-style: solid; border-width: 7px 15px 7px 0; border-color: transparent #e0edff transparent transparent; top: 30px;left: -15px;}
+/* 右 */
+.kaiwa-name-right {font-size: small; position: relative; width: 62%; display: inline-block; vertical-align: top; margin-right: 4%; margin-left: 34%; margin-bottom: 10px; box-sizing: border-box; text-align: right;}
+.kaiwa-text-right{display: inline-block; text-align:left; background-color: #ffeda5; padding: 10px; border-radius: 10px; font-size: medium;}
+.kaiwa-text-right:after {content: ''; position: absolute; width: 0; height: 0; border-style: solid; border-width: 7px 0 7px 15px; border-color: transparent transparent transparent #ffeda5; top: 30px; right: -15px;}
+
+/* チャット入力 */
+footer {
+  width: 98%;
+  position: absolute;/*←絶対位置*/
+  bottom: 0; /*下に固定*/
+}
+#input_area2 span {
+  margin-left: 16px;
+}
+#input_text {
+  width: 96%;
+  max-height: 200px;
+  margin: 3px 16px 16px 16px;
+  line-height: 20px;
+}
+
+

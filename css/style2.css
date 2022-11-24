@@ -1,0 +1,26 @@
+@charset "utf-8";
+
+#output {
+  width: 100%;
+  overflow: auto; 
+  min-height: 300px;
+  max-height: 300px; 
+  /* border: solid 1px black; */
+  /* padding: 16px; */
+}
+
+
+
+.kaiwa-img-left {width: 14%;display: inline-block;vertical-align: top;margin-bottom: 10px;box-sizing: border-box;text-align: right;padding-top: 14px;}
+/* .kaiwa-img-left img{width: 100%;max-width: 75px!important;border-radius: 50%;} */
+.kaiwa-name-left{font-size: small;position: relative;width: 62%;display:inline-block;vertical-align:  top;margin-left: 4%;margin-right: 18%;margin-bottom: 10px;box-sizing: border-box;}
+.kaiwa-text-left{display:inline-block; background-color: #e0edff;padding: 10px;border-radius: 10px;font-size: medium;}
+.kaiwa-text-left:after {content: '';position: absolute;width: 0;height: 0;border-style: solid;border-width: 7px 15px 7px 0;border-color: transparent #e0edff transparent transparent;top:
+ 30px;left: -15px;}
+
+.kaiwa-name-right {font-size: small;position: relative;width: 62%;display: inline-block;vertical-align: top;margin-right: 4%;margin-left: 32%;margin-bottom: 10px;box-sizing: border-box;text-align: right;}
+.kaiwa-img-right {width: 14%;display: inline-block;vertical-align: top;margin-bottom: 10px;box-sizing: border-box;padding-top: 14px;text-align: left;}
+/* .kaiwa-img-right img{width: 100%;max-width: 75px!important;border-radius: 50%;} 
+.kaiwa-img-right p{text-align: left;padding:0px;margin:0px;} */
+.kaiwa-text-right{display: inline-block;text-align:left;background-color: #ffeda5;padding: 10px;border-radius: 10px;font-size: medium;}
+.kaiwa-text-right:after {content: '';position: absolute;width: 0;height: 0;border-style: solid;border-width: 7px 0 7px 15px;border-color: transparent transparent transparent #ffeda5;top: 30px;right: -15px;}

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Firebase:v9:Chatアプリ</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<style>
+    
+</style>
+<body>
+<script src="./js/ignore.js"></script>
+
+<!-- コンテンツ表示画面 -->
+
+<div id="modal">
+    <div id="input_area">
+        <p class="ttl">重要</p>
+        <p>ポップアップが出るのは初回のみです</p>
+        <div class="cp_iptxt">
+            <label class="ef">
+            <input id="input_name" type="text" placeholder="お名前" autocomplete="off">
+            </label>
+        </div>
+        <button id="send_name">閉じる</button>
+    </div>
+</div>
+
+
+<div id="main">
+    <ul id="check"></ul>
+    <div id="output">
+        <!-- チャット文章 -->
+    </div>
+</div>
+<!--/ コンテンツ表示画面 -->
+
+<footer>
+    <div id="input_area2">
+        <span>shift+enterで送信</span>
+        <textarea name="input_text" rows="1" id="input_text" placeholder="内容" autocomplete="off"></textarea>
+    </div>
+    <div id="input_button_area">
+        <span id="input_key" data-value=""></span>
+    </div>
+</footer>
+
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- JQuery -->
+
+
+<!--** 以下Firebase **-->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+    // 単純に追加する & versionを同じように書き換える
+    import { getDatabase, ref, onValue, get, child, update, push, set, onChildAdded, remove, onChildRemoved } 
+    from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+    // -->
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: API_KEY,
+      authDomain: AUTH_DOMAIN,
+      projectId: PROJECT_ID,
+      storageBucket: STORAGE_BUCKET,
+      messagingSenderId: MESSAGING_SENDER_ID,
+      appId: APP_ID
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app); //RealtimeDBに接続
+    const dbRef = ref(db, 'chat'); //RealtimeDB内の"chat"を使う
+
+
+$(function(){
+    if (localStorage['chat_name'] === undefined ) {
+        $('#modal').fadeIn();
+    } else {
+        get_all();
+    }
+
+    $(document).on("click", "#send_name", function () {
+        let my_name = $("#input_name").val();
+        my_name = my_name.trim();
+        if (my_name === '') {
+            $("#input_name").attr('placeholder', '名前を設定してください');
+        } else {
+            // ローカルストレージに名前を登録
+            localStorage.setItem('chat_name', my_name);
+
+            $("#modal").fadeOut();
+            get_all();
+        }
+    });
+
+    
+
+    let items = new Object();
+    let event_key = 0;
+
+    //編集ボタンのイベント(inputへ取り出した詳細情報をセットする)
+    $(document).on("click", ".chat_area", function () {
+        // // 押されたチャットのkeyを取得
+        let get_key = $(this).data("value");
+        
+        event_key = get_key;
+        set_input_chat(get_key);
+    });
+
+
+    //データ登録(シフト+エンターをした時)
+    $(document).on("keydown", "#input_text", function (e) {
+        // input_keyにkeyが入ってるか 入ってない:新規 入ってる:編集 
+        if ( event_key === 0 ) {
+            if( e.keyCode === 13 && e.shiftKey ) {  // When "Shift + Enter"
+                items = get_input_chat();
+                // 新規保存
+                if (check_validate(items)) {
+                    // OK
+                    new_insert_chat(items);
+                } else {
+                    // NG
+                    console.log("空白だけ2");
+                }
+            } 
+        } else {
+            if( e.keyCode === 13 && e.shiftKey ) {
+                items = get_input_chat();
+                // 編集保存
+                if (check_validate(items)) {
+                    // OK
+                    update_insert_chat(items);
+                } else {
+                    // NG
+                    console.log("空白だけ3");
+                }
+            } 
+        }
+    });
+
+
+    //データ削除
+    $(document).on("click", ".delete", function () {
+        let get_key = $(this).parent().parent().parent().data("value");
+        delete_chat(get_key);
+    });
+
+
+    // テキストエリア改行されたら反応
+    let textarea = $('#input_text');
+    let lineHeight = parseInt(textarea.css('lineHeight'));
+    textarea.on('input', function(e) {
+        let lines = ($(this).val() + '\n').match(/\n/g).length;
+        $(this).height(lineHeight * lines);
+    });
+
+
+
+
+
+
+
+
+
+
+    ////////////////
+    // ここから関数 //
+    ////////////////
+
+    function get_all(){
+        let i = 0;
+        //最初にデータ取得＆onSnapshotでリアルタイムにデータを取得
+        onChildAdded(dbRef, function(data) {
+            const msg  = data.val();    //オブジェクトデータを取得し、変数msgに代入
+            const key  = data.key;      //データのユニークキー（削除や更新に使用可能）
+
+            let side1='';
+            let side2='';
+            let button='';
+            if (msg.uname === localStorage['chat_name'] ) {
+                side1 = "kaiwa-name-right";
+                side2 = "kaiwa-text-right";
+                button = '<div class="button_area">';
+                button += '<div class="edit';
+                button += '">編集</div>';
+                button += '<div class="delete';
+                button += '">削除</div></div>';
+                button += '</div></div>';
+            } else {
+                side1 = "kaiwa-name-left";
+                side2 = "kaiwa-text-left";
+            }
+            // 改行されたテキストをbrに変換
+            let rep_br_text = msg.text;
+            rep_br_text = rep_br_text.replace(/\n/g,'<br>');
+
+            //表示用テキスト・HTMLを作成
+            let h = '<div class="chat_area" data-value="';
+                h += key;
+                h += '"><div class="';
+                h += side1;
+                h += '">';
+                h += '<span class="chat_name">';
+                h += msg.uname;
+                h += '</span><br><div class="';
+                h += side2;
+                h += '"><span class="chat_text">';
+                h += rep_br_text;
+                h += '</span></div><br><span class="chat_date">';
+                h += msg.date;
+                h += '</span>';
+                h += button;
+                $("#output").append(h); //#outputに追加
+
+                i = i + 1;
+
+                // 新しいチャットがきたら一番下にスクロール
+                const el = document.getElementById('output');
+                el.scrollTo(0, el.scrollHeight);
+        });
+    }
+
+    function log(text) {
+        let val = 0;
+        val = text;
+        console.log("確認+"+ val);
+    }
+
+    // data-velueにkey値をセット
+    function set_key(get_key) {
+        let element = document.getElementById('input_key');
+        element.dataset.value = get_key;
+    }
+
+    // data-valuのkey値を取得
+    function get_key() {
+        let get_key = $("#input_key").data("value");
+        return get_key;
+    }
+
+    // inputに入力されている情報を取得
+    function get_input_chat() {
+        let text = $("#input_text").val();
+        let name = localStorage['chat_name'];
+        items.text = text;
+        items.name = name;
+        items = check_trim(items);
+
+        return items;
+    }
+
+    // 取得した詳細情報をinputへセット
+    function set_input_chat(get_key) {
+        const showRef = ref(db, 'chat/' + get_key);
+        get(showRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            $('#input_name').val(snapshot.val().uname);
+            $('#input_text').val(snapshot.val().text);
+        } else {
+            console.log("No data available");
+        }
+        }).catch((error) => {
+            console.error(error);
+        });
+    }
+
+    // 先頭末尾の空白スペース削除
+    function check_trim(arr){
+        arr['name'] = arr['name'].trim();
+        arr['text'] = arr['text'].trim();
+        return arr;
+    }
+
+    // バリデーション
+    function check_validate(arr){
+        let valids = [];
+        const valid_name = `<p class="error">名前を入力してください</p>`;
+        const valid_text = `<p class="error">内容を入力してください</p>`;
+
+        if (arr['name']) {  } else { valids.push(valid_name); }
+        if (arr['text']) {  } else { valids.push(valid_text); }
+
+        if (valids.length) {
+            // valids.forEach(function(elem, index) {
+            //     $("#valid").append(elem);
+            // });
+            return false;
+        } else {
+            // エラーなし
+            return true;
+        }
+    }
+
+    // チャット削除 実行
+    function delete_chat(key) {
+        const dbRefDelete = ref(db, "chat/"+key);
+        remove(dbRefDelete);
+    }
+
+    // 【新規】チャット登録 実行
+    function new_insert_chat(items) {
+        const msg = {
+            uname: localStorage['chat_name'],
+            text: items.text,
+            date: get_now()
+        };
+        const newPostRef = push(dbRef);
+        set(newPostRef, msg);
+
+        $("#input_text").val('');
+    }
+
+    // 【編集】チャット登録 実行
+    function update_insert_chat(items) {
+        const editData = {
+            'uname': localStorage['chat_name'],
+            'text': items.text,
+            'date': get_now()
+        };
+
+        const updates = {};
+        updates['chat/' + event_key] = editData;
+        update(ref(db), updates);
+
+        $("#input_text").val('');
+    }
+
+    // 現在時刻の生成
+    function get_now() {
+        let text = '';
+        let now = new Date();
+
+        let year = now.getFullYear();
+        let month = now.getMonth();
+        let date = now.getDate();
+        let hour = now.getHours();
+        let min = now.getMinutes();
+        let sec = now.getSeconds();
+
+        text = year + "/" + month + "/" + date + " " + hour + ":" + min + ":" + sec;
+        return text;
+    }
+
+});
+</script>
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
